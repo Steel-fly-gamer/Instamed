@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instent Medical - Aesthetic Redesign</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Aesthetic Root Variables --- */
+        :root {
+            /* General Palette */
+            --font-family: 'Poppins', sans-serif;
+            --border-radius: 10px;
+            --transition-speed: 0.3s;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+            /* Light Theme */
+            --primary-bg: #f8faff;
+            --secondary-bg: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #e3e8f0;
+            --header-bg: #ffffff;
+            --search-bg: #f0f4f9;
+            --primary-accent: #3b82f6; /* Blue */
+            --severe-color: #e53935; /* Crisp Red */
+            --form-label-color: #4b5563;
+        }
+
+        /* Dark Theme */
+        .dark-theme {
+            --primary-bg: #1e2531;
+            --secondary-bg: #27303f;
+            --text-color: #e9ecf0;
+            --border-color: #3b4554;
+            --header-bg: #27303f;
+            --search-bg: #3b4554;
+            --primary-accent: #64b5f6;
+            --form-label-color: #ccc;
+        }
+
+        /* Severe Condition (Red) Theme */
+        .severe-theme {
+            --primary-bg: #fff1f2;
+            --secondary-bg: #fecaca;
+            --text-color: #8b0000;
+            --border-color: #fca5a5;
+            --header-bg: var(--severe-color);
+            --search-bg: #f87171;
+            --primary-accent: #8b0000;
+            --severe-color: #d32f2f;
+            --form-label-color: #5d0000;
+        }
+
+        /* --- Base & Typography --- */
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+        h1, h2, h3 { font-weight: 500; }
+        .hidden { display: none !important; }
+
+        /* --- Header and Layout Redesign --- */
+        .main-header {
+            padding: 15px 20px;
+            background-color: var(--header-bg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--primary-accent);
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        /* Search Bar below the header */
+        .search-container {
+            padding: 10px 20px 15px;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            margin-bottom: 30px;
+        }
+        
+        #searchBar {
+            width: 100%;
+            max-width: 600px;
+            display: block;
+            margin: 0 auto;
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            background-color: var(--search-bg);
+            color: var(--text-color);
+            transition: all var(--transition-speed);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        #searchBar:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px var(--primary-accent)1a;
+            outline: none;
+        }
+
+        /* --- Compact Control Buttons --- */
+        .control-btn {
+            padding: 8px 10px;
+            font-size: 0.75em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            text-decoration: none; 
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+
+        /* Specific Button Aesthetics (Retained but resized) */
+        .severe-btn { background: linear-gradient(135deg, var(--severe-color) 0%, #ff6b6b 100%); color: white; }
+        .severe-btn:hover { transform: scale(1.05); }
+        .doctor-btn { background: linear-gradient(135deg, var(--primary-accent) 0%, #63a4ff 100%); color: white; }
+        .doctor-btn:hover { transform: translateY(-2px); }
+        .login-btn { background-color: #f97316; color: white; }
+        .login-btn:hover { background-color: #ea580c; transform: scale(1.02); }
+        #themeToggleBtn { background-color: var(--secondary-bg); color: var(--text-color); border: 1px solid var(--border-color); }
+        #themeToggleBtn:hover { background-color: var(--search-bg); }
+
+        /* --- Compact Category Grid --- */
+        .category-grid-container {
+            padding: 0 20px 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .category-card {
+            padding: 20px;
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all var(--transition-speed);
+            border-left: 5px solid var(--primary-accent);
+            cursor: pointer;
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            border-left-color: var(--severe-color);
+        }
+        .category-card h2 {
+            font-size: 1.2em;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            color: var(--primary-accent);
+        }
+        .category-card p {
+            font-size: 0.9em;
+            color: #6b7280;
+            margin: 0;
+        }
+        
+        /* --- Modal and Form Styles --- */
+        .hidden { display: none !important; }
+        .modal { position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; }
+        .modal-content, .order-form-content { background-color: var(--secondary-bg); padding: 30px; border-radius: 15px; width: 90%; max-width: 450px; position: relative; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); text-align: left; }
+        .close-btn { color: #aaa; position: absolute; top: 10px; right: 15px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: var(--form-label-color); font-size: 0.9em; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--search-bg); color: var(--text-color); box-sizing: border-box; }
+        .form-actions { display: flex; justify-content: space-between; margin-top: 25px; }
+        .action-btn { padding: 10px 20px; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+        .action-btn.order { background-color: var(--severe-color); color: white; }
+        .action-btn.cancel { background-color: var(--border-color); color: var(--text-color); }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .keypad-btn { padding: 20px; font-size: 1.5em; background-color: var(--search-bg); color: var(--text-color); border: none; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body class="light-theme">
+
+    <header class="main-header">
+        <div class="header-top-row">
+            <div></div> 
+            
+            <h1 class="logo">Instent Medical</h1>
+            
+            <div class="header-controls">
+                <button id="sellerLoginBtn" class="control-btn login-btn">👤 Login</button>
+                <button id="severeConditionBtn" class="control-btn severe-btn">🚨 Severe</button>
+                <button id="themeToggleBtn" class="control-btn">⚫ Theme</button>
+                <a href="tel:6267584238" class="control-btn doctor-btn">📞 Doctor</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="searchBar" placeholder="Search for products or conditions..." onkeyup="filterProducts()">
+    </div>
+
+    <main class="category-grid-container">
+        
+        <div class="category-grid" id="categoryGrid">
+            </div>
+
+        <section id="productListingView" class="hidden">
+            <button id="backToCategories" class="back-btn">← Back to Categories</button>
+            <h2 class="category-title" id="currentCategoryTitle"></h2>
+            <ul class="product-list" id="productList">
+                </ul>
+            <div class="ailment-grid" id="ailmentsGrid"></div>
+        </section>
+
+    </main>
+
+    <div id="loginModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+            <h3>Seller Login</h3>
+            <p style="color:var(--primary-accent); font-size: 0.9em;">Passcode: <span style="font-weight: bold;">3333</span></p>
+            <input type="password" id="passcodeInput" maxlength="4" placeholder="••••" readonly>
+            <div class="keypad">
+                </div>
+            <button id="loginEnterBtn" class="login-btn" style="width: 100%; margin-top: 20px;">Enter</button>
+            <p id="loginMessage" class="error-message"></p>
+        </div>
+    </div>
+
+    <div id="orderModal" class="modal hidden">
+        <div class="order-form-content">
+            <span class="close-btn" onclick="closeOrderModal()">&times;</span>
+            <h3 id="orderItemTitle">Order Request</h3>
+            
+            <div class="form-group">
+                <label for="orderName">Name</label>
+                <input type="text" id="orderName" placeholder="John Doe" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="orderNumber">Phone Number</label>
+                <input type="tel" id="orderNumber" placeholder="6267584238" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="orderAddress">Address</label>
+                <input type="text" id="orderAddress" placeholder="123 Emergency Lane" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="orderCoords">GPS Coordinates</label>
+                <input type="text" id="orderCoords" placeholder="e.g., 37.7749 N, 122.4194 W" required>
+            </div>
+            
+            <div class="form-actions">
+                <button class="action-btn cancel" onclick="closeOrderModal()">Cancel</button>
+                <button class="action-btn order" id="submitOrderBtn">Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Definitions ---
+        const productData = {
+            tablets: ["Paracetamol (500mg)", "Ibuprofen (400mg)", "Antacid Tablets", "Cough Suppressant", "Multivitamin Tabs", "Aspirin (300mg)", "Pain Reliever Tabs", "Fever Reducer Tabs", "Throat Lozenges", "Hydration Salts", "Motion Sickness Pills", "Sleeping Aid (Mild)", "Zinc Supplements", "Vitamin C Tabs", "Digestive Enzymes", "Diarrhea Control", "Constipation Relief", "Antibiotic (General A)", "Antibiotic (General B)", "Acne Medication", "Gastro Relief", "Blood Pressure (Mild)", "Cholesterol Tabs (M)", "Asthma Inhaler (Tabs)", "Wound Healing Tabs", "Muscle Relaxant", "Cold & Flu Combo", "Anti-Allergy Pills", "B-Complex Tabs", "Calcium Supplements"],
+            injections: ["Vitamin B12 Inj.", "Tetanus Toxoid", "Anti-inflammatory Inj.", "Pain Killer Inj.", "Dextrose (5%) Inj.", "Antibiotic Inj. (C)", "Anti-Nausea Inj.", "Epinephrine (Pre-filled)", "Insulin (Standard)", "Anti-Spasm Inj."],
+            needles: ["Insulin Pen Needle", "Standard IM Needle (22G)", "Standard SC Needle (25G)", "IV Cannula (18G)", "IV Cannula (20G)"],
+            bottles: ["Saline Solution (100ml)", "Glucose IV (500ml)", "Water for Injection", "Bupivacaine Vial", "Lidocaine Vial", "Cefazolin Vial (1g)", "Dopamine Ampoule", "Fentanyl Ampoule", "Morphine Ampoule", "Ondansetron Vial", "Heparin Vial", "Atropine Ampoule", "Dexamethasone Vial", "Ketamine Vial", "Propofol Vial", "Midazolam Ampoule", "Adenosine Ampoule", "Amiodarone Vial", "Sodium Bicarbonate", "Magnesium Sulfate", "Calcium Chloride", "Norepinephrine Vial", "Vasopressin Ampoule", "Tranexamic Acid", "Diazepam Injection", "Haloperidol Injection", "Metoclopramide Inj.", "Furosemide Injection", "Digoxin Injection", "Esmolol Injection"],
+            ailments: ["Fever", "Cough", "Headache", "Stomach Ache", "Flu", "Sore Throat", "Minor Burn", "Minor Cut", "Insect Bite", "Common Cold", "Nausea", "Vomiting", "Diarrhea", "Constipation", "Toothache", "Muscle Pain", "Joint Pain", "Backache", "Allergies", "Minor Asthma Attack", "Skin Rash", "Dehydration (Mild)", "Sunburn", "Eye Irritation", "Earache", "Dizziness", "Hiccups", "Indigestion", "Heartburn", "Minor Sprain", "Nasal Congestion", "Fatigue", "Anxiety (Mild)", "Insomnia (Mild)", "High Blood Pressure (M)", "Low Blood Sugar (M)", "Minor Infection", "Bruise", "Nosebleed", "Menstrual Pain", "Hemorrhoids", "Thyroid Issues (M)", "Vitamin Deficiency", "Chronic Pain (M)", "Ringworm", "Cold Sore", "Dry Skin", "Sinus Pain", "Tension", "Stress"],
+            severe: {
+                tablets: ["Nitroglycerin (Angina)", "High-Dose Steroids", "Anti-Seizure Tabs", "Clopidogrel (Stroke/MI)", "Amlodipine (Severe BP)", "Warfarin (Anticoagulant)", "Specific Anti-Infective", "High-Potency Painkiller", "High-Dose Diuretic", "Specific Antiviral"],
+                injections: ["Epinephrine Auto-Injector (Anaphylaxis)", "IV Dextrose (Hypoglycemia)", "Naloxone (Opioid Overdose)", "Anti-Venom/Anti-Toxin", "Fibrinolytic Agent (Clot Busting)", "IV Antibiotic (Broad-Spectrum)", "Magnesium Sulfate (Seizures/Arrhythmias)", "Atropine (Bradycardia)", "Lidocaine (Arrhythmia)", "Sodium Bicarbonate (Severe Acidosis)"],
+                needles: ["Intraosseous Needle", "Large Bore Trauma Cannula (14G)", "Spinal Needle", "Central Line Kit", "Chest Decompression Needle"],
+                bottles: ["Blood Volume Expanders (Plasma Substitute)", "Packed Red Blood Cells (Placeholder)", "IV Saline (Large Volume)", "IV Fluids with Electrolytes", "Anti-Hemorrhagic Agent", "Advanced Cardiac Life Support Kit", "Specific Vasopressor Vial (e.g., Levo)", "Potassium Chloride IV", "Activated Charcoal Slurry", "Burn Gel/Trauma Dressing Kit"]
+            }
+        };
+
+        const categories = [
+            { id: 'tablets', title: '💊 Tablets (30 Types)', desc: 'Common medications for quick relief.' },
+            { id: 'injections', title: '💉 Injections (10 Types)', desc: 'Pre-filled syringes and injection solutions.' },
+            { id: 'needles', title: '💉 Injection Needles (5 Types)', desc: 'Various gauges and sizes for safe use.' },
+            { id: 'bottles', title: '🍾 Injection Bottle Medicine (30 Types)', desc: 'Vials and ampoules for administration.' },
+            { id: 'ailments', title: '🤒 Common Ailments (50 Examples)', desc: 'Shop by condition (Fever, Cough, etc.).' }
+        ];
+        // --- End Data Definitions ---
+
+
+        // --- DOM Elements and Global State ---
+        const body = document.body;
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const severeConditionBtn = document.getElementById('severeConditionBtn');
+        const searchBar = document.getElementById('searchBar');
+        const categoryGrid = document.getElementById('categoryGrid');
+        const productListingView = document.getElementById('productListingView');
+        const backToCategoriesBtn = document.getElementById('backToCategories');
+        const currentCategoryTitle = document.getElementById('currentCategoryTitle');
+        const productList = document.getElementById('productList');
+        const ailmentsGrid = document.getElementById('ailmentsGrid');
+        const sellerLoginBtn = document.getElementById('sellerLoginBtn');
+        const loginModal = document.getElementById('loginModal');
+        const passcodeInput = document.getElementById('passcodeInput');
+        const loginEnterBtn = document.getElementById('loginEnterBtn');
+        const loginMessage = document.getElementById('loginMessage');
+        const keypadContainer = document.querySelector('.keypad');
+
+        const orderModal = document.getElementById('orderModal');
+        const orderItemTitle = document.getElementById('orderItemTitle');
+        const orderName = document.getElementById('orderName');
+        const orderNumber = document.getElementById('orderNumber');
+        const orderAddress = document.getElementById('orderAddress');
+        const orderCoords = document.getElementById('orderCoords');
+        const submitOrderBtn = document.getElementById('submitOrderBtn');
+        
+        const CORRECT_PASSCODE = "3333";
+        const STORAGE_KEY = 'instentMedicalOrders';
+        let isSevereMode = false;
+        let currentTheme = 'light-theme';
+        let currentProduct = ''; 
+
+        // --- Core Functions ---
+
+        function setupCategoryCards() {
+            categoryGrid.innerHTML = '';
+            categories.forEach(cat => {
+                const card = document.createElement('a');
+                card.href = '#';
+                card.className = 'category-card';
+                card.setAttribute('data-category', cat.id);
+                card.innerHTML = `
+                    <h2 class="category-title">${cat.title}</h2>
+                    <p>${cat.desc}</p>
+                `;
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showCategoryListing(cat.id, cat.title);
+                });
+                categoryGrid.appendChild(card);
+            });
+        }
+
+        function showCategoryListing(category, title) {
+            categoryGrid.classList.add('hidden');
+            productListingView.classList.remove('hidden');
+            currentCategoryTitle.textContent = title;
+            productList.innerHTML = '';
+            ailmentsGrid.innerHTML = '';
+
+            const source = isSevereMode ? productData.severe : productData;
+            
+            if (category === 'ailments') {
+                productList.classList.add('hidden');
+                ailmentsGrid.classList.remove('hidden');
+
+                const items = productData.ailments; 
+                items.forEach(item => {
+                    const tag = document.createElement('span');
+                    tag.className = 'product-item ailment-tag';
+                    tag.textContent = item;
+                    tag.addEventListener('click', () => openOrderModal(item + ' (Ailment Kit)'));
+                    ailmentsGrid.appendChild(tag);
+                });
+
+            } else {
+                productList.classList.remove('hidden');
+                ailmentsGrid.classList.add('hidden');
+
+                const items = source[category] || [];
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'product-item';
+                    li.textContent = item;
+                    li.addEventListener('click', () => {
+                        openOrderModal(item);
+                    });
+                    productList.appendChild(li);
+                });
+            }
+        }
+
+        function showCategoryGrid() {
+            productListingView.classList.add('hidden');
+            categoryGrid.classList.remove('hidden');
+            searchBar.value = '';
+            filterProducts();
+        }
+
+        // --- Order Modal Functions ---
+
+        function openOrderModal(productName) {
+            currentProduct = productName;
+            orderItemTitle.textContent = `Order Request for: ${productName}`;
+            
+            // Clear previous inputs
+            orderName.value = '';
+            orderNumber.value = '';
+            orderAddress.value = '';
+            orderCoords.value = '';
+
+            orderModal.classList.remove('hidden');
+        }
+
+        function closeOrderModal() {
+            orderModal.classList.add('hidden');
+        }
+
+        function placeOrder() {
+            const name = orderName.value.trim();
+            const number = orderNumber.value.trim();
+            const address = orderAddress.value.trim();
+            const coords = orderCoords.value.trim();
+
+            if (!name || !number || !address || !coords) {
+                alert("🚨 ERROR: All fields (Name, Phone Number, Address, GPS Coordinates) are required to place an emergency order.");
+                return;
+            }
+            
+            // NEW: Create order object
+            const newOrder = {
+                id: Date.now(), // Unique ID
+                product: currentProduct,
+                name: name,
+                phone: number,
+                address: address,
+                coords: coords,
+                timestamp: new Date().toLocaleString()
+            };
+
+            // NEW: Get existing orders from localStorage or initialize an empty array
+            const existingOrders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            
+            // NEW: Add the new order
+            existingOrders.push(newOrder);
+
+            // NEW: Save the updated list back to localStorage
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(existingOrders));
+
+            // SIMULATE ORDER SUCCESS
+            alert(
+                `✅ Order Placed Successfully!\n\n` +
+                `Item: ${currentProduct}\n` +
+                `Name: ${name}\n` +
+                `Phone: ${number}\n` +
+                `Address: ${address}\n` +
+                `Coords: ${coords}\n\n` +
+                `Drone dispatched for emergency delivery. ETA 5 minutes.`
+            );
+            
+            closeOrderModal();
+            showCategoryGrid();
+        }
+        
+        // --- Theme, Filter, and Seller Functions ---
+
+        function toggleTheme() {
+            if (isSevereMode) return;
+            
+            if (body.classList.contains('light-theme')) {
+                body.classList.remove('light-theme');
+                body.classList.add('dark-theme');
+                currentTheme = 'dark-theme';
+            } else {
+                body.classList.remove('dark-theme');
+                body.classList.add('light-theme');
+                currentTheme = 'light-theme';
+            }
+        }
+
+        function toggleSevereCondition() {
+            isSevereMode = !isSevereMode;
+            
+            if (isSevereMode) {
+                body.classList.remove('light-theme', 'dark-theme');
+                body.classList.add('severe-theme');
+                severeConditionBtn.textContent = '✅ Severe ACTIVE';
+            } else {
+                body.classList.remove('severe-theme');
+                body.classList.add(currentTheme);
+                severeConditionBtn.textContent = '🚨 Severe';
+            }
+            
+            if (!productListingView.classList.contains('hidden')) {
+                 const currentCat = categories.find(c => currentCategoryTitle.textContent.includes(c.title.split('(')[0].trim()));
+                 if (currentCat) {
+                     showCategoryListing(currentCat.id, currentCat.title);
+                 }
+            }
+        }
+
+        function filterProducts() {
+            const searchTerm = searchBar.value.toLowerCase();
+            const allItems = document.querySelectorAll('.product-item, .category-card');
+
+            allItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        function openLoginModal() {
+            loginModal.classList.remove('hidden');
+            passcodeInput.value = '';
+            loginMessage.textContent = '';
+            setupKeypad();
+        }
+
+        function closeLoginModal() {
+            loginModal.classList.add('hidden');
+        }
+
+        function setupKeypad() {
+            keypadContainer.innerHTML = '';
+            const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0'];
+            keys.forEach(key => {
+                const btn = document.createElement('button');
+                btn.textContent = key;
+                btn.className = 'keypad-btn';
+                btn.addEventListener('click', () => handleKeypadInput(key));
+                keypadContainer.appendChild(btn);
+            });
+        }
+
+        function handleKeypadInput(key) {
+            let currentPass = passcodeInput.value;
+            
+            if (key === 'C') {
+                passcodeInput.value = '';
+            } else if (currentPass.length < 4 && key !== 'Enter') {
+                passcodeInput.value += key;
+            }
+        }
+
+        function handleLogin() {
+            const enteredPass = passcodeInput.value;
+            
+            if (enteredPass === CORRECT_PASSCODE) {
+                closeLoginModal();
+                simulateSellerDashboard();
+            } else {
+                loginMessage.textContent = "❌ Invalid Passcode. Try again.";
+                passcodeInput.value = '';
+            }
+        }
+
+        /**
+         * UPDATED: Fetches orders from localStorage and dynamically builds the dashboard.
+         */
+        function simulateSellerDashboard() {
+            // Fetch live orders from localStorage
+            const liveOrders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            
+            // Format orders for display
+            const formattedOrders = liveOrders.map((order, index) => {
+                return `<li style="padding: 12px; margin-bottom: 10px; background: #d1fae5; border-left: 5px solid #059669; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <span style="font-weight: 600;">Order #${index + 1} (${order.timestamp})</span><br>
+                    <span style="font-size: 1.1em; color: #059669;">📦 ${order.product}</span><br>
+                    Name: ${order.name} | Phone: ${order.phone} | Coords: ${order.coords}
+                </li>`;
+            });
+            
+            // Check if there are orders, otherwise show a message
+            const orderListContent = formattedOrders.length > 0 
+                ? formattedOrders.join('')
+                : '<li style="padding: 15px; text-align: center; color: #555;">No current orders in the queue.</li>';
+
+            const dashboardContent = `
+                <div style="font-family: 'Poppins', sans-serif; padding: 30px; max-width: 900px; margin: 50px auto; background: #ecfdf5; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <h2 style="color: #047857; border-bottom: 2px solid #34d399; padding-bottom: 10px;">Seller Dashboard - Live Drone Orders</h2>
+                    <p style="font-style: italic; color: #10b981;">Passcode: <span style="font-weight: bold;">${CORRECT_PASSCODE}</span></p>
+                    <hr style="border-color: #a7f3d0;">
+                    <ul style="list-style-type: none; padding: 0;">
+                        ${orderListContent}
+                    </ul>
+                    <br>
+                    <div style="display: flex; justify-content: space-between;">
+                        <button onclick="clearAllOrders()" style="padding: 12px 20px; background: #991b1b; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: 500; transition: background-color 0.2s;">Clear All Orders</button>
+                        <button onclick="window.location.reload()" style="padding: 12px 20px; background: #059669; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: 500; transition: background-color 0.2s;">Return to Main Site</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.innerHTML = dashboardContent;
+            document.body.style.backgroundColor = '#ecfdf5';
+        }
+
+        /**
+         * Helper function to clear all orders from localStorage.
+         */
+        function clearAllOrders() {
+            if (confirm("Are you sure you want to clear all recorded orders? This cannot be undone.")) {
+                localStorage.removeItem(STORAGE_KEY);
+                simulateSellerDashboard(); // Refresh the dashboard to show it's empty
+            }
+        }
+
+
+        // --- Initialization and Event Listeners ---
+        setupCategoryCards();
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        severeConditionBtn.addEventListener('click', toggleSevereCondition);
+        backToCategoriesBtn.addEventListener('click', showCategoryGrid);
+        sellerLoginBtn.addEventListener('click', openLoginModal);
+        loginEnterBtn.addEventListener('click', handleLogin);
+        submitOrderBtn.addEventListener('click', placeOrder);
+        filterProducts();
+    </script>
+</body>
+</html>
