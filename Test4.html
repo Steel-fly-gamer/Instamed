@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Medical - E-Commerce Medical</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load React, ReactDOM, and Babel for JSX compilation -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Configure Tailwind Dark Mode -->
+    <script>
+      tailwind.config = {
+        darkMode: 'class', // Enable dark mode based on 'dark' class on <html> or <body>
+        theme: {
+          extend: {
+            colors: {
+              'primary-blue': '#1D4ED8',
+              'secondary-gray': '#F3F4F6',
+              'dark-navy': '#0F172A',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          }
+        }
+      }
+    </script>
+    <style>
+        /* Ensures smooth transitions for background and text colors */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s, color 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- The complete React application code using Babel for JSX compilation -->
+    <script type="text/babel">
+        // 1. Firebase Imports and Configuration (Simulated for this single file)
+        const { useState, useEffect, useCallback, useMemo } = React;
+        
+        // --- MOCK FIREBASE SETUP (For local GitHub testing without full Firebase SDK) ---
+        // NOTE: Order persistence (saving/loading orders) WILL NOT WORK on a plain GitHub Pages deploy
+        
+        // Mocking the necessary Firebase functions and variables
+        let app = null;
+        let db = null;
+        let auth = null;
+        const DOCTOR_PHONE = '8103078208';
+        const ADMIN_EMAIL = 'asaadityasoni2007@gmail.com';
+        const MOCK_UPI_ID = 'user@upi-id-instant'; // Updated UPI ID
+        const MOCK_QR_CODE_URL = 'https://placehold.co/300x300/1D4ED8/FFFFFF?text=Mock+QR+Code';
+        
+        // Mock functions to avoid crashing on GitHub Pages
+        const initializeApp = (config) => ({});
+        const getFirestore = (app) => ({});
+        const getAuth = (app) => ({});
+        const signInWithCustomToken = (auth, token) => console.log("Mock Auth: Signing in...");
+        const signInAnonymously = (auth) => console.log("Mock Auth: Anonymous sign-in.");
+        const onAuthStateChanged = (auth, callback) => {
+            // Mock a logged-in user for functionality testing
+            setTimeout(() => callback({ uid: 'mock-user-123', email: 'test@user.com' }), 100);
+            return () => {};
+        };
+        const createUserWithEmailAndPassword = () => console.error("Mock Auth: Function not available.");
+        const signInWithEmailAndPassword = (auth, email, password) => {
+            if (email === ADMIN_EMAIL && password === '@aashish@') {
+                return { user: { uid: 'admin-123', email: ADMIN_EMAIL } };
+            }
+            throw new Error("Invalid mock credentials.");
+        };
+        const signOut = () => console.log("Mock Auth: Signing out.");
+        const collection = (db, path) => ({ path });
+        const query = (collectionRef) => ({ collectionRef });
+        const addDoc = (collectionRef, data) => {
+            console.log("Mock Firestore: Adding document to", collectionRef.path, data);
+            return Promise.resolve({ id: `mock-order-${Math.random().toString(36).substring(2, 9)}` });
+        };
+        const serverTimestamp = () => ({ toDate: () => new Date() });
+        const onSnapshot = (query, successCallback) => {
+            // Mock initial orders for the Admin view
+            const mockOrders = [
+                { id: 'o1', productName: 'Paracetamol Tablet 1', quantity: 2, productPrice: 8.50, customerName: 'Mock User', customerPhone: '9999900000', customerAddress: '123 Fake St', coordinates: '0, 0', timestamp: { toDate: () => new Date() }, userId: 'mock-user-123' },
+            ];
+            successCallback({ docs: mockOrders.map(o => ({ id: o.id, data: () => o })) });
+            return () => {}; // Mock unsubscribe
+        };
+
+        const initialAuthToken = null; // No token available on GitHub
+
+        // --- END MOCK FIREBASE SETUP ---
+
+        // Utility function to generate mock product data (10 items per category)
+        const generateProducts = (type, count) => {
+            const names = {
+                'Tablets': ['Paracetamol', 'Ibuprofen', 'Amoxicillin', 'Aspirin', 'Cetirizine', 'Loratadine', 'Omeprazole', 'Metformin', 'Simvastatin', 'Levothyroxine'],
+                'Injections': ['Insulin', 'Vaccine Tetanus', 'Heparin', 'Adrenaline', 'Morphine', 'B12 Shot', 'Dexamethasone', 'Ceftriaxone', 'Midazolam', 'Fentanyl'],
+                'Machines': ['Blood Pressure Monitor', 'Oximeter', 'Nebulizer', 'Glucometer', 'Thermometer', 'ECG Device', 'Infusion Pump', 'Ventilator', 'Defibrillator', 'Ultrasound System'],
+                'Medicines': ['Cough Syrup', 'Antiseptic Cream', 'Eye Drops', 'Vitamins', 'First Aid Kit', 'Digestive Aid', 'Topical Gel', 'Oral Suspension', 'Herbal Tincture', 'Laxative']
+            };
+            
+            const productList = [];
+            for (let i = 0; i < count; i++) {
+                const name = names[type][i % names[type].length];
+                productList.push({
+                    id: `${type.toLowerCase()}-${i + 1}`,
+                    name: `${name} ${type.slice(0, -1)} ${i + 1}`,
+                    description: `Effective treatment for common symptoms. Batch: B${100 + i}.`,
+                    price: (Math.random() * 10 + 5).toFixed(2),
+                    category: type,
+                    image: `https://placehold.co/150x150/1D4ED8/FFFFFF?text=${name.slice(0, 5)}`
+                });
+            }
+            return productList;
+        };
+
+        const PRODUCTS = [
+            ...generateProducts('Tablets', 10),
+            ...generateProducts('Injections', 10),
+            ...generateProducts('Machines', 10),
+            ...generateProducts('Medicines', 10),
+        ];
+
+        // --- APP COMPONENTS ---
+
+        const CurvedButton = ({ children, onClick, color = 'primary-blue', disabled = false, type = 'button' }) => (
+            <button
+                onClick={onClick}
+                disabled={disabled}
+                type={type}
+                className={`
+                    px-6 py-3 rounded-2xl font-semibold shadow-lg transition-all duration-300
+                    transform hover:scale-[1.02] active:scale-[0.98]
+                    bg-${color} text-white
+                    ${disabled ? 'opacity-50 cursor-not-allowed' : `hover:bg-${color.replace('-blue', '-700')} focus:ring-4 focus:ring-${color} focus:ring-opacity-50`}
+                `}
+            >
+                {children}
+            </button>
+        );
+
+        const ThemeToggle = ({ theme, setTheme }) => (
+            <button
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                className="p-2 rounded-full text-dark-navy dark:text-white transition-all duration-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+                {theme === 'light' ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                )}
+            </button>
+        );
+
+        const OrderCard = ({ order, theme, isDetailed = false }) => {
+            const bgColor = theme === 'dark' ? 'bg-gray-700' : 'bg-secondary-gray';
+            const textColor = theme === 'dark' ? 'text-gray-100' : 'text-dark-navy';
+            const date = order.timestamp && order.timestamp.toDate ? order.timestamp.toDate() : new Date();
+
+            return (
+                <div key={order.id} className={`p-5 rounded-2xl ${bgColor} shadow-md transition-all duration-500 border border-primary-blue`}>
+                    <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-xl text-primary-blue">{order.productName} (x{order.quantity})</h3>
+                        <span className={`font-semibold ${textColor}`}>Total: ₹{(order.quantity * order.productPrice).toFixed(2)}</span>
+                    </div>
+                    <p className="text-sm text-gray-400">Order ID: {order.id}</p>
+                    {isDetailed && (
+                        <>
+                            <p className={`mt-2 text-sm ${textColor}`}>**Customer: {order.customerName} (Ph: {order.customerPhone})**</p>
+                            <p className="text-sm text-gray-500">Address: {order.customerAddress}</p>
+                            <p className="text-xs text-gray-500">Coords: {order.coordinates}</p>
+                        </>
+                    )}
+                    <p className="text-xs text-gray-500">Placed on: {date.toLocaleString()}</p>
+                </div>
+            );
+        };
+
+        const AdminOrdersView = ({ orders, theme, isAdmin }) => {
+            const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+            const textColor = theme === 'dark' ? 'text-gray-100' : 'text-dark-navy';
+
+            return (
+                <div className={`p-6 ${bgColor} rounded-3xl shadow-2xl transition-all duration-500`}>
+                    <h2 className={`text-3xl font-bold mb-6 border-b pb-3 ${textColor}`}>
+                        {isAdmin ? 'Admin Orders Dashboard' : 'My Orders'}
+                    </h2>
+                    {orders.length === 0 ? (
+                        <p className={`${textColor} text-lg`}>No orders found.</p>
+                    ) : (
+                        <div className="space-y-6">
+                            {orders.map((order) => (
+                                <OrderCard key={order.id} order={order} theme={theme} isDetailed={isAdmin} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const Catalog = ({ theme, onSelectProduct }) => {
+            const [filter, setFilter] = useState('All');
+            const categories = useMemo(() => ['All', 'Tablets', 'Injections', 'Medicines', 'Machines'], []);
+
+            const filteredProducts = useMemo(() => {
+                if (filter === 'All') return PRODUCTS;
+                return PRODUCTS.filter(p => p.category === filter);
+            }, [filter]);
+
+            const bgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-secondary-gray';
+            const textColor = theme === 'dark' ? 'text-gray-100' : 'text-dark-navy';
+
+            return (
+                <div className="p-4 sm:p-8">
+                    <h2 className={`text-3xl font-bold mb-6 ${textColor} text-center`}>Our Medical Catalog</h2>
+
+                    <div className={`flex flex-wrap justify-center gap-2 mb-8 p-3 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-full shadow-inner transition-all duration-500`}>
+                        {categories.map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setFilter(cat)}
+                                className={`
+                                    px-4 py-2 rounded-full font-medium transition-all duration-300
+                                    ${filter === cat 
+                                        ? 'bg-primary-blue text-white shadow-md' 
+                                        : `${textColor} hover:bg-gray-200 dark:hover:bg-gray-700`
+                                    }
+                                `}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+                        {filteredProducts.map((product) => (
+                            <div 
+                                key={product.id}
+                                className={`
+                                    p-4 ${bgColor} rounded-3xl shadow-xl border border-transparent 
+                                    hover:border-primary-blue transform hover:scale-[1.02] transition-all duration-300 cursor-pointer
+                                `}
+                                onClick={() => onSelectProduct(product)}
+                            >
+                                <img 
+                                    src={product.image} 
+                                    alt={product.name} 
+                                    className="w-full h-24 object-contain mb-3 rounded-xl bg-white" 
+                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/150x96/E5E7EB/4B5563?text=Product' }}
+                                />
+                                <h3 className={`font-semibold text-lg truncate ${textColor}`}>{product.name}</h3>
+                                <p className="text-primary-blue font-bold text-xl mt-1">₹{product.price}</p>
+                                <p className="text-gray-500 text-sm">{product.category}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const ProductModal = ({ theme, product, onClose, userId, isAdmin }) => {
+            const [orderStep, setOrderStep] = useState('form');
+            const [formData, setFormData] = useState({
+                name: '', phone: '', address: '', quantity: 1, coordinates: ''
+            });
+            const [formError, setFormError] = useState('');
+            const [isSubmitting, setIsSubmitting] = useState(false);
+
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.name]: e.target.value });
+                setFormError('');
+            };
+
+            const handleFormSubmit = (e) => {
+                e.preventDefault();
+                if (!userId) {
+                    setFormError('Please sign in to place an order.');
+                    return;
+                }
+                if (formData.quantity < 1) {
+                    setFormError('Quantity must be at least 1.');
+                    return;
+                }
+                if (!formData.name || !formData.phone || !formData.address || !formData.coordinates) {
+                    setFormError('All fields are required.');
+                    return;
+                }
+                
+                setOrderStep('payment');
+            };
+
+            const handlePlaceOrder = async () => {
+                if (!product || isSubmitting) return;
+
+                setIsSubmitting(true);
+                try {
+                    // NOTE: This call uses a MOCK version of addDoc on GitHub Pages.
+                    // Persistence requires full Firebase configuration.
+                    await addDoc(collection(db, 'mock-orders-path'), {
+                        userId,
+                        timestamp: serverTimestamp(),
+                        productName: product.name,
+                        productId: product.id,
+                        productPrice: parseFloat(product.price),
+                        quantity: formData.quantity,
+                        customerName: formData.name,
+                        customerPhone: formData.phone,
+                        customerAddress: formData.address,
+                        coordinates: formData.coordinates,
+                        status: 'Payment Confirmed (Mock)',
+                    });
+
+                    setOrderStep('complete');
+                } catch (error) {
+                    console.error('Error placing order:', error);
+                    setFormError('Failed to place order. (Check console for mock details)');
+                    setOrderStep('form');
+                } finally {
+                    setIsSubmitting(false);
+                }
+            };
+
+            const modalBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+            const textColor = theme === 'dark' ? 'text-gray-100' : 'text-dark-navy';
+            const totalAmount = (product.price * formData.quantity).toFixed(2);
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+                    <div className={`relative w-full max-w-lg ${modalBg} p-8 rounded-3xl shadow-2xl transform transition-all duration-500`}>
+                        
+                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition duration-300">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+
+                        <h2 className={`text-3xl font-bold mb-4 border-b pb-2 ${textColor}`}>
+                            {product.name}
+                        </h2>
+                        <div className={`flex items-center space-x-4 mb-6 text-xl font-semibold ${textColor}`}>
+                            <p>Price: <span className="text-primary-blue">₹{product.price}</span></p>
+                            <p className="text-2xl font-bold ml-auto text-red-500">
+                                Total: ₹{totalAmount}
+                            </p>
+                        </div>
+
+                        {orderStep === 'form' && (
+                            <form onSubmit={handleFormSubmit} className="space-y-4">
+                                <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Full Name" required 
+                                    className={`w-full p-3 rounded-xl border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`} />
+                                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone Number" required 
+                                    className={`w-full p-3 rounded-xl border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`} />
+                                <textarea name="address" value={formData.address} onChange={handleChange} placeholder="Delivery Address" required rows="2"
+                                    className={`w-full p-3 rounded-xl border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}></textarea>
+                                <input type="text" name="coordinates" value={formData.coordinates} onChange={handleChange} placeholder="Coordinates (Search Google Maps)" required 
+                                    className={`w-full p-3 rounded-xl border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`} />
+                                <div className="flex items-center space-x-4">
+                                    <label className={`font-medium ${textColor}`}>Quantity:</label>
+                                    <input type="number" name="quantity" value={formData.quantity} onChange={handleChange} min="1" required 
+                                        className={`p-3 rounded-xl border w-20 text-center ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`} />
+                                </div>
+                                
+                                {formError && <p className="text-red-500 font-medium">{formError}</p>}
+                                
+                                <div className="pt-4 flex justify-end">
+                                    <CurvedButton type="submit">
+                                        Proceed to Payment
+                                    </CurvedButton>
+                                </div>
+                            </form>
+                        )}
+
+                        {orderStep === 'payment' && (
+                            <div className="text-center space-y-6">
+                                <p className={`text-xl font-medium ${textColor}`}>
+                                    Please pay <span className="text-red-500 font-extrabold">₹{totalAmount}</span> to confirm.
+                                </p>
+                                
+                                <img src={MOCK_QR_CODE_URL} alt="Payment QR Code" className="mx-auto rounded-xl shadow-xl border-4 border-primary-blue"/>
+                                
+                                <p className={`text-lg font-mono ${textColor}`}>
+                                    UPI ID: <span className="font-bold text-primary-blue">{MOCK_UPI_ID}</span>
+                                </p>
+                                
+                                <CurvedButton onClick={handlePlaceOrder} disabled={isSubmitting}>
+                                    {isSubmitting ? 'Placing Order...' : 'I Have Paid & Place Order'}
+                                </CurvedButton>
+                                <p onClick={() => setOrderStep('form')} className="text-sm text-gray-500 cursor-pointer hover:text-primary-blue transition-colors">
+                                    &larr; Back to Order Details
+                                </p>
+                            </div>
+                        )}
+                        
+                        {orderStep === 'complete' && (
+                            <div className="text-center space-y-6">
+                                <svg className="w-20 h-20 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <h3 className="text-2xl font-bold text-green-500">Order Placed Successfully!</h3>
+                                <p className={`text-lg ${textColor}`}>Your order is being processed.</p>
+                                <CurvedButton onClick={onClose}>
+                                    Continue Shopping
+                                </CurvedButton>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const AuthPage = ({ theme, onNavigate, setMockUser }) => {
+            const [isLogin, setIsLogin] = useState(true);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                setIsLoading(true);
+
+                // --- MOCK LOGIN LOGIC ---
+                try {
+                    if (isLogin) {
+                        const user = await signInWithEmailAndPassword(auth, email, password);
+                        setMockUser(user.user);
+                    } else {
+                        // In a real app, this would create a user
+                        setMockUser({ uid: 'new-user-' + Math.random().toString(36).substring(2, 6), email });
+                    }
+                    onNavigate('Home');
+                } catch (err) {
+                    setError('Mock Login Failed. Try admin credentials or anonymous sign-in.');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const modalBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+            const textColor = theme === 'dark' ? 'text-gray-100' : 'text-dark-navy';
+
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className={`w-full max-w-md p-8 ${modalBg} rounded-3xl shadow-2xl transition-all duration-500`}>
+                        <h2 className={`text-4xl font-extrabold mb-6 text-center ${textColor}`}>{isLogin ? 'Login' : 'Sign Up'}</h2>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} 
+                                placeholder="Email Address (e.g., admin@example.com)" required 
+                                className={`w-full p-3 rounded-xl border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`} />
+                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} 
+                                placeholder="Password" required 
+                                className={`w-full p-3 rounded-xl border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`} />
+                            
+                            {error && <p className="text-red-500 font-medium text-sm pt-2">{error}</p>}
+
+                            <CurvedButton type="submit" disabled={isLoading} color="primary-blue">
+                                {isLoading ? 'Processing...' : isLogin ? 'Login' : 'Create Account'}
+                            </CurvedButton>
+                        </form>
+
+                        <p className={`mt-4 text-center text-sm ${textColor}`}>
+                            {isLogin ? "Don't have an account?" : "Already have an account?"}
+                            <button 
+                                onClick={() => setIsLogin(!isLogin)} 
+                                className="text-primary-blue hover:underline ml-2 font-medium transition-colors"
+                            >
+                                {isLogin ? 'Sign Up' : 'Login'}
+                            </button>
+                        </p>
+                        <p className={`mt-4 text-center text-xs text-gray-500`}>
+                            Admin Credentials for Mock Login: {ADMIN_EMAIL} / @aashish@
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [theme, setTheme] = useState('light');
+            const [currentPage, setCurrentPage] = useState('Home');
+            const [currentUser, setCurrentUser] = useState(null);
+            const [isAuthReady, setIsAuthReady] = useState(false);
+            const [orders, setOrders] = useState([]);
+            const [selectedProduct, setSelectedProduct] = useState(null);
+            const [firebaseError, setFirebaseError] = useState('');
+
+            const userId = currentUser?.uid || null;
+            const isAdmin = currentUser?.email === ADMIN_EMAIL;
+            
+            // Function to set mock user after login/signup (since we mocked onAuthStateChanged)
+            const setMockUser = (user) => {
+                setCurrentUser(user);
+                setIsAuthReady(true);
+            };
+
+            // 2. Firebase/Mock Setup
+            useEffect(() => {
+                // Initialize Mock Firebase/Auth
+                const signInAndListen = async () => {
+                    await signInAnonymously(auth); // Mock sign-in
+                };
+                signInAndListen();
+                
+                // Mock Auth Listener
+                const unsubscribe = onAuthStateChanged(auth, (user) => {
+                    setCurrentUser(user);
+                    setIsAuthReady(true);
+                    if (!user) {
+                        setCurrentPage('Auth');
+                    } else if (currentPage === 'Auth') {
+                         setCurrentPage('Home');
+                    }
+                });
+                
+                // Mock Firestore Listener for Orders
+                const ordersUnsubscribe = onSnapshot(query(collection(db, 'mock-orders-path')), (snapshot) => {
+                    const fetchedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data()() }));
+                    fetchedOrders.sort((a, b) => b.timestamp?.toDate().getTime() - a.timestamp?.toDate().getTime());
+                    setOrders(fetchedOrders);
+                });
+
+                return () => { unsubscribe(); ordersUnsubscribe(); };
+            }, []);
+
+            // 3. Theming Logic
+            useEffect(() => {
+                document.body.className = theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-100';
+            }, [theme]);
+            
+            // 4. Navigation Function
+            const navigate = (page) => {
+                if (!currentUser && page !== 'Auth') {
+                    setCurrentPage('Auth');
+                } else if (page === 'Admin' && !isAdmin) {
+                    // Prevent non-admins from viewing the admin page
+                    return;
+                } else {
+                    setCurrentPage(page);
+                }
+            };
+            
+            // 5. Direct Doctor Call Handler
+            const handleCallDoctor = () => {
+                window.open(`tel:${DOCTOR_PHONE}`);
+            };
+
+            // 6. Render Content based on CurrentPage
+            const renderContent = () => {
+                switch (currentPage) {
+                    case 'Auth':
+                        return <AuthPage theme={theme} onNavigate={navigate} setMockUser={setMockUser} />;
+                    case 'Catalog':
+                        return <Catalog theme={theme} onSelectProduct={setSelectedProduct} />;
+                    case 'Orders':
+                        const userOrders = orders.filter(o => o.userId === userId);
+                        return <AdminOrdersView orders={userOrders} theme={theme} isAdmin={false} />;
+                    case 'Admin':
+                        if (isAdmin) {
+                            return <AdminOrdersView orders={orders} theme={theme} isAdmin={true} />;
+                        }
+                        return <div className="text-center p-12 text-red-500 font-bold">Access Denied</div>;
+                    case 'Home':
+                    default:
+                        const textColor = theme === 'dark' ? 'text-gray-100' : 'text-dark-navy';
+                        return (
+                            <div className="p-8 sm:p-16 text-center transition-all duration-500">
+                                <h1 className={`text-5xl sm:text-7xl font-extrabold text-primary-blue mb-4`}>
+                                    INSTANT MEDICAL
+                                </h1>
+                                <p className={`text-xl sm:text-3xl font-medium ${textColor} mb-8`}>
+                                    Your seamless link to essential medicines and medical services.
+                                </p>
+                                <div className="space-y-4 sm:space-y-0 sm:space-x-6">
+                                    <CurvedButton onClick={() => navigate('Catalog')}>
+                                        Explore Catalog
+                                    </CurvedButton>
+                                    <CurvedButton onClick={handleCallDoctor} color="red-500">
+                                        Call Doctor Now
+                                    </CurvedButton>
+                                </div>
+                                <div className="mt-12 p-6 bg-white dark:bg-gray-800 rounded-3xl shadow-xl mx-auto max-w-xl transition-all duration-500">
+                                    <h3 className="text-2xl font-bold mb-3 text-primary-blue">Need Urgent Advice?</h3>
+                                    <p className="text-lg text-gray-500">Click the button to connect instantly with a certified physician.</p>
+                                    <p className="font-mono text-xl mt-2 text-primary-blue">{DOCTOR_PHONE}</p>
+                                </div>
+                            </div>
+                        );
+                }
+            };
+
+            const bgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100';
+            const textColor = theme === 'dark' ? 'text-gray-100' : 'text-dark-navy';
+            const navItemClass = "px-4 py-2 rounded-xl transition-all duration-300 font-medium hover:bg-primary-blue hover:text-white cursor-pointer";
+
+            return (
+                <div className={`min-h-screen ${bgColor} ${textColor} font-sans transition-colors duration-500`}>
+                    
+                    <header className={`sticky top-0 z-40 shadow-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} transition-all duration-500`}>
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap justify-between items-center">
+                            
+                            <h1 onClick={() => navigate('Home')} className="text-3xl font-extrabold text-primary-blue cursor-pointer">
+                                INSTANT MEDICAL
+                            </h1>
+
+                            <nav className="flex space-x-2 sm:space-x-4 text-sm sm:text-base order-last sm:order-none w-full sm:w-auto mt-4 sm:mt-0">
+                                <span onClick={() => navigate('Home')} className={navItemClass}>Home</span>
+                                <span onClick={() => navigate('Catalog')} className={navItemClass}>Catalog</span>
+                                {currentUser && <span onClick={() => navigate('Orders')} className={navItemClass}>My Orders</span>}
+                                {isAdmin && <span onClick={() => navigate('Admin')} className={`${navItemClass} text-red-500 font-bold`}>Admin View</span>}
+                                <span onClick={handleCallDoctor} className={`${navItemClass} bg-red-500 text-white hover:bg-red-700`}>Call Doctor</span>
+                            </nav>
+
+                            <div className="flex items-center space-x-4">
+                                <ThemeToggle theme={theme} setTheme={setTheme} />
+                                {isAuthReady && (
+                                    currentUser ? (
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate max-w-[100px] sm:max-w-none">
+                                                {currentUser.email === ADMIN_EMAIL ? 'Admin' : 'User'}
+                                            </span>
+                                            <CurvedButton onClick={() => setMockUser(null)} color="red-500">
+                                                Logout
+                                            </CurvedButton>
+                                        </div>
+                                    ) : (
+                                        <CurvedButton onClick={() => navigate('Auth')} color="green-500">
+                                            Login/Signup
+                                        </CurvedButton>
+                                    )
+                                )}
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-6">
+                        {!isAuthReady && <div className="text-center p-12 text-xl font-bold text-primary-blue">Loading Application...</div>}
+                        {isAuthReady && renderContent()}
+                    </main>
+
+                    {selectedProduct && (
+                        <ProductModal 
+                            theme={theme}
+                            product={selectedProduct}
+                            onClose={() => setSelectedProduct(null)}
+                            userId={userId}
+                            isAdmin={isAdmin}
+                        />
+                    )}
+                    
+                    <footer className="bg-gray-800 dark:bg-gray-950 text-white p-4 text-center mt-12">
+                        <p className="text-sm">This is a fully self-contained HTML file. For persistent orders, you must integrate a real Firebase project.</p>
+                    </footer>
+
+                </div>
+            );
+        };
+
+        // Render the main application
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+    </script>
+</body>
+</html>
+
